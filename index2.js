@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 });
 
 // ===== CONFIGS =====
-const PANEL_URL = 'ptlc_FoiVBG2E9qmiO0z21ulzVgglAlnIsFwuygvxKtbtoyC';
+const PANEL_URL = 'ptlc_xKdSdxVPJxk3SFwokPr8Wlz6qLvaY5wJJcbfAKKcDiR';
 const CLIENT_TOKEN = 'ptlc_UbX2bgSDd7s6ZTaUOt7sSCtJ4lpekqxDujT1v5EOG57';
 const SERVER_ID = 'aafeb84b';
 const PORT = process.env.PORT || 3000;
