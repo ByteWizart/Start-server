@@ -3,6 +3,7 @@ const axios = require('axios');
 const https = require('https');
 const app = express();
 
+// Middleware
 app.use(express.json());
 
 // CORS
@@ -34,9 +35,7 @@ async function obterIpDoServidor() {
     const allocations = res.data.attributes.relationships.allocations.data;
     const principal = allocations.find(a => a.attributes.is_default);
     if (!principal) return 'Nenhum IP padrão configurado.';
-    const ip = principal.attributes.ip;
-    const port = principal.attributes.port;
-    return `${ip}:${port}`;
+    return `${principal.attributes.ip}:${principal.attributes.port}`;
   } catch (err) {
     console.error('Erro ao obter IP:', err.message);
     return 'Erro ao obter IP!';
@@ -48,11 +47,11 @@ async function obterUsoServidor() {
     const res = await axios.get(`${PANEL_URL}/api/client/servers/${SERVER_ID}/resources`, {
       headers: clientHeaders,
     });
-    const usage = res.data.attributes.resources;
+    const uso = res.data.attributes.resources;
     return {
-      cpu: `${(usage.cpu_absolute || 0).toFixed(2)}%`,
-      ram: `${(usage.memory_bytes / 1024 / 1024).toFixed(2)} MB`,
-      disco: `${(usage.disk_bytes / 1024 / 1024).toFixed(2)} MB`,
+      cpu: `${(uso.cpu_absolute || 0).toFixed(2)}%`,
+      ram: `${(uso.memory_bytes / 1024 / 1024).toFixed(2)} MB`,
+      disco: `${(uso.disk_bytes / 1024 / 1024).toFixed(2)} MB`,
     };
   } catch (err) {
     console.error('Erro ao obter uso:', err.message);
@@ -75,7 +74,7 @@ async function statusServidor() {
 async function acaoPowerServidor(signal) {
   try {
     await axios.post(`${PANEL_URL}/api/client/servers/${SERVER_ID}/power`, { signal }, {
-      headers: clientHeaders
+      headers: clientHeaders,
     });
     return `Servidor ${signal} com sucesso!`;
   } catch (err) {
@@ -88,9 +87,9 @@ async function acaoPowerServidor(signal) {
 let jogadores = ['Jogador1', 'Jogador2'];
 let consoleLogs = [];
 
-function adicionarLogConsole(mensagem) {
+function adicionarLogConsole(msg) {
   const timestamp = new Date().toISOString();
-  consoleLogs.push(`[${timestamp}] ${mensagem}`);
+  consoleLogs.push(`[${timestamp}] ${msg}`);
   if (consoleLogs.length > 100) consoleLogs.shift();
 }
 
@@ -140,13 +139,18 @@ app.get('/console', (req, res) => {
   res.json({ logs: consoleLogs });
 });
 
-// ===== ROTA HTML (PAINEL) =====
+// ===== ROTA HTML =====
 app.get('/', (req, res) => {
-  res.send(`
+  res.sendFile(__dirname + '/painel.html');
+});
+
+// ===== PAINEL HTML =====
+const fs = require('fs');
+fs.writeFileSync(__dirname + '/painel.html', `
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Painel do Servidor</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -225,35 +229,22 @@ app.get('/', (req, res) => {
     }
 
     async function controlarServidor(acao) {
-      let endpoint = '';
-      if (acao === 'start') endpoint = 'iniciar';
-      else if (acao === 'stop') endpoint = 'parar';
-      else if (acao === 'restart') endpoint = 'reiniciar';
-
-      const res = await fetch(\`\${BASE_URL}/\${endpoint}\`, {
-        method: 'POST',
-      });
-
+      const endpoint = acao === 'start' ? 'iniciar' : acao === 'stop' ? 'parar' : 'reiniciar';
+      const res = await fetch(\`\${BASE_URL}/\${endpoint}\`, { method: 'POST' });
       const data = await res.json();
       alert(data.message || 'Ação executada.');
       adicionarLogLocal(\`Comando enviado: \${acao}\`);
     }
 
     function adicionarLogLocal(msg) {
-      const consoleLogs = document.getElementById('consoleLogs');
+      const log = document.getElementById('consoleLogs');
       const timestamp = new Date().toISOString();
-      consoleLogs.textContent += \`\\n[\${timestamp}] \${msg}\`;
-      consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      log.textContent += \`\\n[\${timestamp}] \${msg}\`;
+      log.scrollTop = log.scrollHeight;
     }
 
     async function atualizarTudo() {
-      await Promise.all([
-        fetchStatus(),
-        fetchIp(),
-        fetchUso(),
-        fetchPlayers(),
-        fetchConsoleLogs()
-      ]);
+      await Promise.all([fetchStatus(), fetchIp(), fetchUso(), fetchPlayers(), fetchConsoleLogs()]);
     }
 
     setInterval(atualizarTudo, 5000);
@@ -261,8 +252,7 @@ app.get('/', (req, res) => {
   </script>
 </body>
 </html>
-  `);
-});
+`);
 
 // ===== INICIAR SERVIDOR =====
 app.listen(PORT, () => {
