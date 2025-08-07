@@ -7,7 +7,7 @@ const PORT = 3000;
 // ========== CONFIGURAÇÕES ==========
 const PANEL_URL = 'https://backend.magmanode.com'; // API do MagmaNode
 const SERVER_ID = 'c9593e69'; // ID do seu servidor MagmaNode
-const CLIENT_TOKEN = 'ptlc_UbX2bgSDd7s6ZTaUOt7sSCtJ4lpekqxDujT1v5EOG57'; // Seu token da API
+const CLIENT_TOKEN = 'ptlc_ZLN2GPS3fO4t1jYPU4IS9YPYaXQ72l1osG24wmsi4JQ'; // Seu token da API
 
 // ========== MIDDLEWARE ==========
 app.use(express.json());
